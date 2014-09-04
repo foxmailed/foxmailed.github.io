@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <title>HBase读流程.html</title>
+  <meta name="generator" content="Haroopad 0.12.2" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>div.oembedall-githubrepos{border:1px solid #DDD;border-radius:4px;list-style-type:none;margin:0 0 10px;padding:8px 10px 0;font:13.34px/1.4 helvetica,arial,freesans,clean,sans-serif;width:452px;background-color:#fff}div.oembedall-githubrepos .oembedall-body{background:-moz-linear-gradient(center top,#FAFAFA,#EFEFEF) repeat scroll 0 0 transparent;background:-webkit-gradient(linear,left top,left bottom,from(#FAFAFA),to(#EFEFEF));border-bottom-left-radius:4px;border-bottom-right-radius:4px;border-top:1px solid #EEE;margin-left:-10px;margin-top:8px;padding:5px 10px;width:100%}div.oembedall-githubrepos h3{font-size:14px;margin:0;padding-left:18px;white-space:nowrap}div.oembedall-githubrepos p.oembedall-description{color:#444;font-size:12px;margin:0 0 3px}div.oembedall-githubrepos p.oembedall-updated-at{color:#888;font-size:11px;margin:0}div.oembedall-githubrepos ul.oembedall-repo-stats{border:medium none;float:right;font-size:11px;font-weight:700;padding-left:15px;position:relative;z-index:5;margin:0}div.oembedall-githubrepos ul.oembedall-repo-stats li{border:medium none;color:#666;display:inline-block;list-style-type:none;margin:0!important}div.oembedall-githubrepos ul.oembedall-repo-stats li a{background-color:transparent;border:medium none;color:#666!important;background-position:5px -2px;background-repeat:no-repeat;border-left:1px solid #DDD;display:inline-block;height:21px;line-height:21px;padding:0 5px 0 23px}div.oembedall-githubrepos ul.oembedall-repo-stats li:first-child a{border-left:medium none;margin-right:-3px}div.oembedall-githubrepos ul.oembedall-repo-stats li a:hover{background:none no-repeat scroll 5px -27px #4183C4;color:#FFF!important;text-decoration:none}div.oembedall-githubrepos ul.oembedall-repo-stats li:first-child a:hover{border-bottom-left-radius:3px;border-top-left-radius:3px}ul.oembedall-repo-stats li:last-child a:hover{border-bottom-right-radius:3px;border-top-right-radius:3px}span.oembedall-closehide{background-color:#aaa;border-radius:2px;cursor:pointer;margin-right:3px}div.oembedall-container{margin-top:5px;text-align:left}.oembedall-ljuser{font-weight:700}.oembedall-ljuser img{vertical-align:bottom;border:0;padding-right:1px}.oembedall-stoqembed{border-bottom:1px dotted #999;float:left;overflow:hidden;width:730px;line-height:1;background:none repeat scroll 0 0 #FFF;color:#000;font-family:Arial,Liberation Sans,DejaVu Sans,sans-serif;font-size:80%;text-align:left;margin:0;padding:0}.oembedall-stoqembed a{color:#07C;text-decoration:none;margin:0;padding:0}.oembedall-stoqembed a:hover{text-decoration:underline}.oembedall-stoqembed a:visited{color:#4A6B82}.oembedall-stoqembed h3{font-family:Trebuchet MS,Liberation Sans,DejaVu Sans,sans-serif;font-size:130%;font-weight:700;margin:0;padding:0}.oembedall-stoqembed .oembedall-reputation-score{color:#444;font-size:120%;font-weight:700;margin-right:2px}.oembedall-stoqembed .oembedall-user-info{height:35px;width:185px}.oembedall-stoqembed .oembedall-user-info .oembedall-user-gravatar32{float:left;height:32px;width:32px}.oembedall-stoqembed .oembedall-user-info .oembedall-user-details{float:left;margin-left:5px;overflow:hidden;white-space:nowrap;width:145px}.oembedall-stoqembed .oembedall-question-hyperlink{font-weight:700}.oembedall-stoqembed .oembedall-stats{background:none repeat scroll 0 0 #EEE;margin:0 0 0 7px;padding:4px 7px 6px;width:58px}.oembedall-stoqembed .oembedall-statscontainer{float:left;margin-right:8px;width:86px}.oembedall-stoqembed .oembedall-votes{color:#555;padding:0 0 7px;text-align:center}.oembedall-stoqembed .oembedall-vote-count-post{font-size:240%;color:#808185;display:block;font-weight:700}.oembedall-stoqembed .oembedall-views{color:#999;padding-top:4px;text-align:center}.oembedall-stoqembed .oembedall-status{margin-top:-3px;padding:4px 0;text-align:center;background:none repeat scroll 0 0 #75845C;color:#FFF}.oembedall-stoqembed .oembedall-status strong{color:#FFF;display:block;font-size:140%}.oembedall-stoqembed .oembedall-summary{float:left;width:635px}.oembedall-stoqembed .oembedall-excerpt{line-height:1.2;margin:0;padding:0 0 5px}.oembedall-stoqembed .oembedall-tags{float:left;line-height:18px}.oembedall-stoqembed .oembedall-tags a:hover{text-decoration:none}.oembedall-stoqembed .oembedall-post-tag{background-color:#E0EAF1;border-bottom:1px solid #3E6D8E;border-right:1px solid #7F9FB6;color:#3E6D8E;font-size:90%;line-height:2.4;margin:2px 2px 2px 0;padding:3px 4px;text-decoration:none;white-space:nowrap}.oembedall-stoqembed .oembedall-post-tag:hover{background-color:#3E6D8E;border-bottom:1px solid #37607D;border-right:1px solid #37607D;color:#E0EAF1}.oembedall-stoqembed .oembedall-fr{float:right}.oembedall-stoqembed .oembedall-statsarrow{background-image:url(http://cdn.sstatic.net/stackoverflow/img/sprites.png?v=3);background-repeat:no-repeat;overflow:hidden;background-position:0 -435px;float:right;height:13px;margin-top:12px;width:7px}.oembedall-facebook1{border:#1A3C6C solid 1px;padding:0;font:13.34px/1.4 verdana;width:500px}.oembedall-facebook2{background-color:#627add}.oembedall-facebook2 a{color:#e8e8e8;text-decoration:none}.oembedall-facebookBody{background-color:#fff;vertical-align:top;padding:5px}.oembedall-facebookBody .contents{display:inline-block;width:100%}.oembedall-facebookBody div img{float:left;margin-right:5px}div.oembedall-lanyard{-webkit-box-shadow:none;-webkit-transition-delay:0s;-webkit-transition-duration:.4000000059604645s;-webkit-transition-property:width;-webkit-transition-timing-function:cubic-bezier(0.42,0,.58,1);background-attachment:scroll;background-clip:border-box;background-color:transparent;background-image:none;background-origin:padding-box;border-bottom-width:0;border-left-width:0;border-right-width:0;border-top-width:0;box-shadow:none;color:#112644;display:block;float:left;font-family:'Trebuchet MS',Trebuchet,sans-serif;font-size:16px;height:253px;line-height:19px;margin-bottom:0;margin-left:0;margin-right:0;margin-top:0;max-width:none;min-height:0;outline-color:#112644;outline-style:none;outline-width:0;overflow-x:visible;overflow-y:visible;padding-bottom:0;padding-left:0;padding-right:0;padding-top:0;position:relative;text-align:left;vertical-align:baseline;width:804px}div.oembedall-lanyard .tagline{font-size:1.5em}div.oembedall-lanyard .wrapper{overflow:hidden;clear:both}div.oembedall-lanyard .split{float:left;display:inline}div.oembedall-lanyard .prominent-place .flag:active,div.oembedall-lanyard .prominent-place .flag:focus,div.oembedall-lanyard .prominent-place .flag:hover,div.oembedall-lanyard .prominent-place .flag:link,div.oembedall-lanyard .prominent-place .flag:visited{float:left;display:block;width:48px;height:48px;position:relative;top:-5px;margin-right:10px}div.oembedall-lanyard .place-context{font-size:.889em}div.oembedall-lanyard .prominent-place .sub-place{display:block}div.oembedall-lanyard .prominent-place{font-size:1.125em;line-height:1.1em;font-weight:400}div.oembedall-lanyard .main-date{color:#8CB4E0;font-weight:700;line-height:1.1}div.oembedall-lanyard .first{width:48.57%;margin:0 0 0 2.857%}html{height:100%}body{margin:0!important;padding:5px 20px 26px!important;background-color:#fff;font-family:"Lucida Grande","Segoe UI","Apple SD Gothic Neo","Malgun Gothic","Lucida Sans Unicode",Helvetica,Arial,sans-serif;font-size:.9em;overflow-x:hidden;overflow-y:auto}br,h1,h2,h3,h4,h5,h6{clear:both}hr.page{background:transparent url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAYAAAAECAYAAACtBE5DAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBNYWNpbnRvc2giIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6OENDRjNBN0E2NTZBMTFFMEI3QjRBODM4NzJDMjlGNDgiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6OENDRjNBN0I2NTZBMTFFMEI3QjRBODM4NzJDMjlGNDgiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDo4Q0NGM0E3ODY1NkExMUUwQjdCNEE4Mzg3MkMyOUY0OCIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDo4Q0NGM0E3OTY1NkExMUUwQjdCNEE4Mzg3MkMyOUY0OCIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PqqezsUAAAAfSURBVHjaYmRABcYwBiM2QSA4y4hNEKYDQxAEAAIMAHNGAzhkPOlYAAAAAElFTkSuQmCC) repeat-x 0 0;border:0 none;color:#ccc;height:3px;padding:0}hr.underscore{border:0 none!important;height:30px;padding:0;-webkit-margin-before:0;-webkit-margin-after:0}body >:first-child{margin-top:0!important}img.plugin{box-shadow:0 1px 3px rgba(0,0,0,.1);border-radius:3px}iframe{border:0}figure{-webkit-margin-before:0;-webkit-margin-after:0;-webkit-margin-start:0;-webkit-margin-end:0}kbd{border:1px solid #aaa;-moz-border-radius:2px;-webkit-border-radius:2px;border-radius:2px;-moz-box-shadow:1px 2px 2px #ddd;-webkit-box-shadow:1px 2px 2px #ddd;box-shadow:1px 2px 2px #ddd;background-color:#f9f9f9;background-image:-moz-linear-gradient(top,#eee,#f9f9f9,#eee);background-image:-o-linear-gradient(top,#eee,#f9f9f9,#eee);background-image:-webkit-linear-gradient(top,#eee,#f9f9f9,#eee);background-image:linear-gradient(top,#eee,#f9f9f9,#eee);padding:1px 3px;font-family:inherit;font-size:.85em}.oembeded .oembed_photo{display:inline-block}img[data-echo]{margin:25px 0;width:100px;height:100px;background:#fff url(../img/ajax.gif) no-repeat center center}.spinner{display:inline-block;width:10px;height:10px;margin-bottom:-.1em;border:2px solid rgba(0,0,0,.5);border-top-color:transparent;border-radius:100%;-webkit-animation:spin 1s infinite linear;animation:spin 1s infinite linear}.spinner:after{content:'';display:block;width:0;height:0;position:absolute;top:-6px;left:0;border:4px solid transparent;border-bottom-color:rgba(0,0,0,.5);-webkit-transform:rotate(45deg);transform:rotate(45deg)}@-webkit-keyframes spin{to{-webkit-transform:rotate(360deg)}}@keyframes spin{to{transform:rotate(360deg)}}p.toc{margin:0!important}p.toc ul{padding-left:10px}p.toc>ul{padding:10px;margin:0 10px;display:inline-block;border:1px solid #ededed;border-radius:5px}p.toc li,p.toc ul{list-style-type:none}p.toc li{width:100%;padding:0;overflow:hidden}p.toc li a::after{content:"."}p.toc li a:before{content:"• "}p.toc h5{text-transform:uppercase}p.toc .title{float:left;padding-right:3px}p.toc .number{margin:0;float:right;padding-left:3px;background:#fff;display:none}.markdown{padding:20px}.markdown a{text-decoration:none;vertical-align:baseline}.markdown a:hover{text-decoration:underline}.markdown h1{font-size:2.2em;font-weight:700;margin:1.5em 0 1em}.markdown h2{font-size:1.8em;font-weight:700;margin:1.275em 0 .85em}.markdown h3{font-size:1.6em;font-weight:700;margin:1.125em 0 .75em}.markdown h4{font-size:1.4em;font-weight:700;margin:.99em 0 .66em}.markdown h5{font-size:1.2em;font-weight:700;margin:.855em 0 .57em}.markdown h6{font-size:1em;font-weight:700;margin:.75em 0 .5em}.markdown h1+p,.markdown h1:first-child,.markdown h2+p,.markdown h2:first-child,.markdown h3+p,.markdown h3:first-child,.markdown h4+p,.markdown h4:first-child,.markdown h5+p,.markdown h5:first-child,.markdown h6+p,.markdown h6:first-child{margin-top:0}.markdown hr{border:1px solid #ccc}.markdown p{margin:1em 0;word-wrap:break-word}.markdown ol{list-style-type:decimal}.markdown li{display:list-item;line-height:1.4em}.markdown blockquote{margin:1em 20px}.markdown blockquote>:first-child{margin-top:0}.markdown blockquote>:last-child{margin-bottom:0}.markdown blockquote cite:before{content:'\2014 \00A0'}.markdown .code{border-radius:3px;word-break:break-all;word-wrap:break-word}.markdown pre{border-radius:3px;word-break:break-all;word-wrap:break-word;overflow:auto}.markdown pre code{display:block}.markdown pre>code{border:1px solid #ccc;white-space:pre;padding:.5em;margin:0}.markdown code{border-radius:3px;word-break:break-all;word-wrap:break-word;border:1px solid #ccc;padding:0 5px;margin:0 2px}.markdown img{max-width:100%}.markdown table{padding:0;border-collapse:collapse;border-spacing:0}.markdown table tr td,.markdown table tr th{border:1px solid #ccc;margin:0;padding:6px 13px}.markdown table tr th{font-weight:700}.markdown table tr th>:first-child{margin-top:0}.markdown table tr th>:last-child{margin-bottom:0}.markdown table tr td>:first-child{margin-top:0}.markdown table tr td>:last-child{margin-bottom:0}.markdown em.underline{font-style:normal;text-decoration:underline}.markdown strong.highlight{color:#000;padding:0 5px;background-color:#fdffb6;-webkit-box-shadow:#fdffb6 0 0 5px;-moz-box-shadow:#fdffb6 0 0 5px;box-shadow:#fdffb6 0 0 5px}@import url(http://fonts.googleapis.com/css?family=Tauri);import url(http://fonts.googleapis.com/css?family=Roboto+Condensed:300italic,400italic,700italic,400,300,700);.haroopad{padding:20px;color:#222;font-size:15px;font-family:'Roboto Condensed',Tauri,"Lucida Grande","Lucida Sans Unicode","Lucida Sans",AppleSDGothicNeo-Medium,'Segoe UI','Malgun Gothic',Verdana,Tahoma,sans-serif;background:#fff;-webkit-font-smoothing:antialiased}.haroopad a{color:#3269a0}.haroopad a:hover{color:#4183c4}.haroopad h2{border-bottom:1px solid #e6e6e6;line-height:1.7em}.haroopad h6{color:#777}.haroopad hr{border:1px solid #e6e6e6}.haroopad blockquote>code,.haroopad h1>code,.haroopad h2>code,.haroopad h3>code,.haroopad h4>code,.haroopad h5>code,.haroopad h6>code,.haroopad li>code,.haroopad p>code,.haroopad td>code{color:#000;background-color:#feecdd;border:1px solid #efdfd0}.haroopad pre>code{font-size:1em;font-family:Consolas,Inconsolata,Courier,monospace;letter-spacing:-1px;font-weight:700}.haroopad blockquote{border-left:4px solid #e6e6e6;padding:0 15px;color:#777}.haroopad table{background-color:#fafafa}.haroopad table tr td,.haroopad table tr th{border:1px solid #e6e6e6}.haroopad table tr:nth-child(2n){background-color:#f2f2f2}.hljs{display:block;overflow-x:auto;padding:.5em;background:#fdf6e3;color:#657b83;-webkit-text-size-adjust:none}.diff .hljs-header,.hljs-comment,.hljs-doctype,.hljs-javadoc,.hljs-pi,.hljs-template_comment,.lisp .hljs-string{color:#93a1a1}.css .hljs-tag,.hljs-addition,.hljs-keyword,.hljs-request,.hljs-status,.hljs-winutils,.method,.nginx .hljs-title{color:#859900}.hljs-command,.hljs-hexcolor,.hljs-link_url,.hljs-number,.hljs-phpdoc,.hljs-regexp,.hljs-rules .hljs-value,.hljs-string,.hljs-tag .hljs-value,.tex .hljs-formula{color:#2aa198}.css .hljs-function,.hljs-built_in,.hljs-chunk,.hljs-decorator,.hljs-id,.hljs-identifier,.hljs-localvars,.hljs-title,.vhdl .hljs-literal{color:#268bd2}.hljs-attribute,.hljs-class .hljs-title,.hljs-constant,.hljs-link_reference,.hljs-parent,.hljs-type,.hljs-variable,.lisp .hljs-body,.smalltalk .hljs-number{color:#b58900}.clojure .hljs-title,.css .hljs-pseudo,.diff .hljs-change,.hljs-attr_selector,.hljs-cdata,.hljs-header,.hljs-pragma,.hljs-preprocessor,.hljs-preprocessor .hljs-keyword,.hljs-shebang,.hljs-special,.hljs-subst,.hljs-symbol,.hljs-symbol .hljs-string{color:#cb4b16}.hljs-deletion,.hljs-important{color:#dc322f}.hljs-link_label{color:#6c71c4}.tex .hljs-formula{background:#eee8d5}footer{position:fixed;font-size:.8em;text-align:right;bottom:0;margin-left:-25px;height:20px;width:100%}</style>
+</head>
+<body class="markdown haroopad">
+
+  <h2 id="hbase-scan流程分析"><a name="hbase-scan流程分析" href="#hbase-scan流程分析"></a>HBase Scan流程分析</h2><p>HBase的读流程目前看来比较复杂，主要由于：</p><ul>
+<li>HBase的表数据分为多个层次,HRegion-&gt;HStore-&gt;[HFile,HFile,...,MemStore]</li>
+<li>RegionServer的LSM-Like存储引擎，不断flush产生新的HFile，同时产生新的MemStore用于后续数据写入，并且为了防止由于HFile过多而导致Scan时需要扫描的文件过多而导致的性能下降，后台线程会适时的进行Compaction，Compaction的过程会产生新的HFile，并且会删除Compact完成的HFile</li>
+<li>具体实现中的各种优化，比如<a href="https://issues.apache.org/jira/browse/HBASE-4465">lazy seek优化</a>，导致代码比较复杂</li>
+</ul><p>读流程中充斥着各种Scanner，如下图：</p><pre><code data-origin="&lt;pre&gt;&lt;code&gt;                                 +--------------+
+                                 |              |
+                     +-----------+ RegionScanner+----------+
+                     |           +------+-------+          |
+                     |                  |                  |
+                     |                  |                  |
+               +-----v+-------+  +------v-------+   +------v+------+
+               |              |  |              |   |              |
+               | StoreScanner |  | StoreScanner |   | StoreScanner |
+               |              |  |              |   |              |
+               +--------------+  +--+---+-----+-+   +--------------+
+                                    |   |     |
+            +-----------------------+   |     +----------+
+            |                           |                |
+            |                           |                |
+    +-------v---------+   +-------------v----+ +---------v------+
+    |                 |   |                  | |                |
+    |StoreFileScanner |   |StoreFileScanner  | | MemStoreScanner|
+    |                 |   |                  | |                |
+    +-------+---------+   +--------+---------+ +-------+--------+
+            |                      |                   |
+            |                      |                   |
+            |                      |                   |
+            |                      |                   |
+    +-------v---------+   +--------v---------+ +-------v--------+
+    |                 |   |                  | |                |
+    |  HFileScanner   |   |  HFileScanner    | | HFileScanner   |
+    |                 |   |                  | |                |
+    +-----------------+   +------------------+ +----------------+
+&lt;/code&gt;&lt;/pre&gt;">                                 +--------------+
+                                 |              |
+                     +-----------+ RegionScanner+----------+
+                     |           +------+-------+          |
+                     |                  |                  |
+                     |                  |                  |
+               +-----v+-------+  +------v-------+   +------v+------+
+               |              |  |              |   |              |
+               | StoreScanner |  | StoreScanner |   | StoreScanner |
+               |              |  |              |   |              |
+               +--------------+  +--+---+-----+-+   +--------------+
+                                    |   |     |
+            +-----------------------+   |     +----------+
+            |                           |                |
+            |                           |                |
+    +-------v---------+   +-------------v----+ +---------v------+
+    |                 |   |                  | |                |
+    |StoreFileScanner |   |StoreFileScanner  | | MemStoreScanner|
+    |                 |   |                  | |                |
+    +-------+---------+   +--------+---------+ +-------+--------+
+            |                      |                   |
+            |                      |                   |
+            |                      |                   |
+            |                      |                   |
+    +-------v---------+   +--------v---------+ +-------v--------+
+    |                 |   |                  | |                |
+    |  HFileScanner   |   |  HFileScanner    | | HFileScanner   |
+    |                 |   |                  | |                |
+    +-----------------+   +------------------+ +----------------+
+</code></pre><p>在HBase中，一张表可以有多个Column Family，在一次Scan的流程中，每个Column Family(后续叫Store)的数据读取由一个StoreScanner对象负责。每个Store的数据由一个内存中的MemStore和磁盘上的HFile文件组成，相对应的，StoreScanner对象雇佣一个MemStoreScanner和N个StoreFileScanner来进行实际的数据读取。</p><p>从逻辑上看，读取一行的数据需要</p><ol>
+<li>按照顺序读取出每个Store</li>
+<li>对于每个Store，合并Store下面的相关的HFile和内存中的MemStore</li>
+</ol><p>实现上，这两步都是通过堆完成。RegionScanner的读取通过下面的多个StoreScanner组成的堆
+完成，使用RegionScanner的成员变量KeyValueHeap storeHeap表示</p><p>组成StoreScanner的多个Scanner在RegionScannerImpl构造函数中获得：</p><pre><code data-origin="&lt;pre&gt;&lt;code&gt;for (Map.Entry&amp;lt;byte[], NavigableSet&amp;lt;byte[]&amp;gt;&amp;gt; entry :
+          scan.getFamilyMap().entrySet()) {
+        Store store = stores.get(entry.getKey());
+        // 实际是StoreScanner类型
+        KeyValueScanner scanner = store.getScanner(scan, entry.getValue(), this.readPt);
+        if (this.filter == null || !scan.doLoadColumnFamiliesOnDemand()
+          || this.filter.isFamilyEssential(entry.getKey())) {
+          scanners.add(scanner);
+        } else {
+          joinedScanners.add(scanner);
+        }
+}
+&lt;/code&gt;&lt;/pre&gt;">for (Map.Entry&lt;byte[], NavigableSet&lt;byte[]&gt;&gt; entry :
+          scan.getFamilyMap().entrySet()) {
+        Store store = stores.get(entry.getKey());
+        // 实际是StoreScanner类型
+        KeyValueScanner scanner = store.getScanner(scan, entry.getValue(), this.readPt);
+        if (this.filter == null || !scan.doLoadColumnFamiliesOnDemand()
+          || this.filter.isFamilyEssential(entry.getKey())) {
+          scanners.add(scanner);
+        } else {
+          joinedScanners.add(scanner);
+        }
+}
+</code></pre><p>store.getScanner(scan, entry.getValue(), this.readPt)内部就是new 一个StoreScanner，逻辑都在StoreScanner的构造函数中</p><p>构造函数内部其实就是找到相关的HFile和MemStore，然后建堆，注意，这个堆是StoreScanner级别的，一个StoreScanner一个堆，堆中的元素就是底下包含的HFile和MemStore对应的StoreFileScanner和MemStoreScanner
+得到相关的HFile和MemStore逻辑在StoreScanner::getScannersNoCompaction()中，内部会根据请求指定的TimeRange,KeyRange过滤掉不需要的HFile，同时也会利用bloom filter过滤掉不需要的HFIle.接着，调用</p><pre><code data-origin="&lt;pre&gt;&lt;code&gt;seekScanners(scanners, matcher.getStartKey(), explicitColumnQuery &amp;amp;&amp;amp; lazySeekEnabledGlobally,
+        isParallelSeekEnabled);
+&lt;/code&gt;&lt;/pre&gt;">seekScanners(scanners, matcher.getStartKey(), explicitColumnQuery &amp;&amp; lazySeekEnabledGlobally,
+        isParallelSeekEnabled);
+</code></pre><p>对这些StoreFileScanner和MemStoreScanner分别进行seek，seekKey是matcher.getStartKey()，
+如下构造</p><pre><code data-origin="&lt;pre&gt;&lt;code&gt; return new KeyValue(row, family, null, HConstants.LATEST_TIMESTAMP,
+        Type.DeleteFamily);
+&lt;/code&gt;&lt;/pre&gt;"> return new KeyValue(row, family, null, HConstants.LATEST_TIMESTAMP,
+        Type.DeleteFamily);
+</code></pre><h3 id="seek语义"><a name="seek语义" href="#seek语义"></a>Seek语义</h3><p>seek是针对KeyValue的，seek的语义是seek到指定KeyValue，如果指定KeyValue不存在，则seek到指定KeyValue的下一
+个。举例来说，假设名为X的column family里有两列a和b，文件中有两行rowkey分别为aaa和
+bbb，如下表所示.</p><table>
+    <tbody><tr>
+        <td></td>
+        <td align="center" colspan="2">Column Family  X</td>
+    </tr>
+    <tr>
+        <td>rowkey</td>
+        <td>column a</td>
+        <td>column b</td>
+    </tr>
+    <tr>
+        <td>aaa</td>
+        <td>1</td>
+        <td>abc</td>
+    </tr>
+     <tr>
+        <td>bbb</td>
+        <td>2</td>
+        <td>def</td>
+    </tr>
+</tbody></table><p>HBase客户端设置scan请求的start key为aaa，那么matcher.getStartKey()会被初始化为(rowkey, family, qualifier,timestamp,type)=(aaa,X,null,LATEST_TIMESTAMP,Type.DeleteFamily)，根据KeyValue的比较原则，这个KeyValue比aaa行的第一个列a更
+小(因为没有qualifier)，所以对这个StoreFileScanner seek时，会seek到aaa这行的第一列a</p><p>实际上</p><pre><code data-origin="&lt;pre&gt;&lt;code&gt;seekScanners(scanners, matcher.getStartKey(), explicitColumnQuery &amp;amp;&amp;amp; lazySeekEnabledGlobally,
+        isParallelSeekEnabled);
+&lt;/code&gt;&lt;/pre&gt;">seekScanners(scanners, matcher.getStartKey(), explicitColumnQuery &amp;&amp; lazySeekEnabledGlobally,
+        isParallelSeekEnabled);
+</code></pre><p>有可能不会对StoreFileScanner进行实际的seek，而是进行lazy seek，seek的工作放到不得不做的时候。后续会专门说lazy seek</p><p>上面得到了请求scan涉及到的所有的column family对应的StoreScanner，随后调用如下函数进行建堆:</p><pre><code data-origin="&lt;pre&gt;&lt;code&gt;     protected void initializeKVHeap(List&amp;lt;KeyValueScanner&amp;gt; scanners,
+        List&amp;lt;KeyValueScanner&amp;gt; joinedScanners, HRegion region)
+        throws IOException {
+      this.storeHeap = new KeyValueHeap(scanners, region.comparator);
+      if (!joinedScanners.isEmpty()) {
+        this.joinedHeap = new KeyValueHeap(joinedScanners, region.comparator);
+      }
+    }
+&lt;/code&gt;&lt;/pre&gt;">     protected void initializeKVHeap(List&lt;KeyValueScanner&gt; scanners,
+        List&lt;KeyValueScanner&gt; joinedScanners, HRegion region)
+        throws IOException {
+      this.storeHeap = new KeyValueHeap(scanners, region.comparator);
+      if (!joinedScanners.isEmpty()) {
+        this.joinedHeap = new KeyValueHeap(joinedScanners, region.comparator);
+      }
+    }
+</code></pre><p>KeyValueScanner是一个接口，表示一个可以向外迭代出KeyValue
+的Scanner，StoreFileScanner,MemStoreScanner和StoreScanner都实现了该接口。这里的comparator类型为KVScannerComparator，用于比较两个KeyValueScanner，实际上内部使用了KVComparator，它是用来比较两个KeyValue的。从后面可以看出，实际上，这个由KeyValueScanner组成的堆，堆顶KeyValueScanner满足的特征是： 它的堆顶(KeyValue)最小</p><p>堆用类KeyValueHeap表示,看KeyValueHeap构造函数做了什么</p><pre><code data-origin="&lt;pre&gt;&lt;code&gt;    KeyValueHeap(List&amp;lt;? extends KeyValueScanner&amp;gt; scanners,
+      KVScannerComparator comparator) throws IOException {
+    this.comparator = comparator;
+        if (!scanners.isEmpty()) {
+          // 根据传入的KeyValueScanner构造出一个优先级队列(内部实现就是堆)
+          this.heap = new PriorityQueue&amp;lt;KeyValueScanner&amp;gt;(scanners.size(),
+              this.comparator);
+          for (KeyValueScanner scanner : scanners) {
+            if (scanner.peek() != null) {
+              this.heap.add(scanner);
+            } else {
+              scanner.close();
+            }
+          }
+        //以上将元素加入堆中
+        // 从堆顶pop出一个KeyValueScanner放入成员变量current,那么这个堆的堆顶
+        // 就是current这个KeyValueScanner的堆顶，KeyValueHeap的peek()取堆顶
+        // 操作直接返回current.peek()
+          this.current = pollRealKV();
+        }
+    }
+&lt;/code&gt;&lt;/pre&gt;">    KeyValueHeap(List&lt;? extends KeyValueScanner&gt; scanners,
+      KVScannerComparator comparator) throws IOException {
+    this.comparator = comparator;
+        if (!scanners.isEmpty()) {
+          // 根据传入的KeyValueScanner构造出一个优先级队列(内部实现就是堆)
+          this.heap = new PriorityQueue&lt;KeyValueScanner&gt;(scanners.size(),
+              this.comparator);
+          for (KeyValueScanner scanner : scanners) {
+            if (scanner.peek() != null) {
+              this.heap.add(scanner);
+            } else {
+              scanner.close();
+            }
+          }
+        //以上将元素加入堆中
+        // 从堆顶pop出一个KeyValueScanner放入成员变量current,那么这个堆的堆顶
+        // 就是current这个KeyValueScanner的堆顶，KeyValueHeap的peek()取堆顶
+        // 操作直接返回current.peek()
+          this.current = pollRealKV();
+        }
+    }
+</code></pre><p>在看pollRealKV()怎么做的之前需要先看看HBase 0.94引入的Lazy Seek</p><h3 id="[lazy-seek优化](https://issues.apache.org/jira/browse/hbase-4465)"><a name="[lazy-seek优化](https://issues.apache.org/jira/browse/hbase-4465)" href="#[lazy-seek优化](https://issues.apache.org/jira/browse/hbase-4465)"></a><a href="https://issues.apache.org/jira/browse/HBASE-4465">Lazy Seek优化</a></h3><p>在这个优化之前，读取一个column family(Store)，需要seek其下的所有HFile和MemStore到指定的查询KeyValue(seek的语义为如果KeyValue存在则seek到对应位置，如果不存在，则seek到这个KeyValue的后一个KeyValue，假设Store下有3个HFile和一个MemStore，按照时序递增记为[HFile1, HFile2, HFile3, MemStore],在lazy seek优化之前，需要对所有的HFile和MemStore进行seek，对HFile文件的seek比较慢，往往需要将HFile相应的block加载到内存，然后定位。在有了lazy seek优化之后，如果需要的KeyValue在HFile3中就存在，那么HFIle1和HFile2都不需要进行seek，大大提高速度。大体来说，思路是请求seek某个KeyValue时实际上没有对StoreFileScanner进行真正的seek，而是对于每个StoreFileScanner，设置它的peek为(rowkey,family,qualifier,lastTimestampInStoreFile)</p><p>KeyValueHeap有两个重要的接口，peek()和next()，他们都是返回堆顶，区别在于next()会将堆顶出堆，然后重新调整堆，对外来说就是迭代器向前移动，而peek()不会将堆顶出堆，堆顶不变。实现中，
+peek()操作非常简单，只需要调用堆的成员变量current的peek()方法操作即可.拿StoreScanner堆举例，current要么是StoreFileScanner类型要么是MemStore，那么到底current是如何选择出来的以及Lazy Seek是如何实现的?</p><p>下面举个例子说明。</p><h5 id="前提："><a name="前提：" href="#前提："></a>前提：</h5><p>HBase开启了Lazy Seek优化(实际上默认开启)</p><h5 id="假设："><a name="假设：" href="#假设："></a>假设：</h5><p>Store下有三个HFile和MemStore，按照时间顺序记作[HFile1,HFile2,HFile3,MemStore],seek KeyValue为(rowkey,family,qualifier,timestamp)，记作seekKV.
+并且它只在HFile3中存在，不在其他HFile和MemStore中存在</p><h5 id="lazy-seek过程"><a name="lazy-seek过程" href="#lazy-seek过程"></a>Lazy Seek过程</h5><p>seekScanner()的逻辑，如果是lazy seek，则对于每个Scanner都调
+用requestSeek(seekKV)方法，方法内部首先进行rowcol类型的bloom filter过滤</p><ol>
+<li><p>如果结果判定seekKV在StoreFile中肯定不存在，则直接设置StoreFileScanner的peek(实际上StoreFileScanner不是一个
+堆只是为了统一代码)为 kv.createLastOnRowCol()，并且将realSeekDone设置true，表示实际的seek完成.</p>
+<pre><code data-origin="&lt;pre&gt;&lt;code&gt;public KeyValue createLastOnRowCol() {
+ return new KeyValue(
+     bytes, getRowOffset(), getRowLength(),
+     bytes, getFamilyOffset(), getFamilyLength(),
+     bytes, getQualifierOffset(), getQualifierLength(),
+     HConstants.OLDEST_TIMESTAMP, Type.Minimum, null, 0, 0);
+}
+&lt;/code&gt;&lt;/pre&gt;">public KeyValue createLastOnRowCol() {
+ return new KeyValue(
+     bytes, getRowOffset(), getRowLength(),
+     bytes, getFamilyOffset(), getFamilyLength(),
+     bytes, getQualifierOffset(), getQualifierLength(),
+     HConstants.OLDEST_TIMESTAMP, Type.Minimum, null, 0, 0);
+}
+</code></pre><p>可以看出ts设置为最小，说明这个KeyValue排在所有的同rowkey同column family同qualifier的KeyValue最后。显然，当上层StoreScanner取堆顶时，
+如果其它StoreFileScanner/MemStoreScanner中存在同rowkey同column family同qualifier的真实的KeyValue则会优先弹出。</p>
+</li>
+<li><p>如果seekKV在StoreFile中，那么会执行如下逻辑：</p>
+<pre><code data-origin="&lt;pre&gt;&lt;code&gt;realSeekDone = false;
+long maxTimestampInFile = reader.getMaxTimestamp();
+long seekTimestamp = kv.getTimestamp();
+if (seekTimestamp &amp;gt; maxTimestampInFile) {
+  // Create a fake key that is not greater than the real next key.
+  // (Lower timestamps correspond to higher KVs.)
+  // To understand this better, consider that we are asked to seek
+  // to
+  // a higher timestamp than the max timestamp in this file. We
+  // know that
+  // the next point when we have to consider this file again is
+  // when we
+  // pass the max timestamp of this file (with the same
+  // row/column).
+  cur = kv.createFirstOnRowColTS(maxTimestampInFile);
+} else {
+  enforceSeek();
+}
+&lt;/code&gt;&lt;/pre&gt;">realSeekDone = false;
+long maxTimestampInFile = reader.getMaxTimestamp();
+long seekTimestamp = kv.getTimestamp();
+if (seekTimestamp &gt; maxTimestampInFile) {
+  // Create a fake key that is not greater than the real next key.
+  // (Lower timestamps correspond to higher KVs.)
+  // To understand this better, consider that we are asked to seek
+  // to
+  // a higher timestamp than the max timestamp in this file. We
+  // know that
+  // the next point when we have to consider this file again is
+  // when we
+  // pass the max timestamp of this file (with the same
+  // row/column).
+  cur = kv.createFirstOnRowColTS(maxTimestampInFile);
+} else {
+  enforceSeek();
+}
+</code></pre><p>显然，当kv的ts比HFile中最大的ts都更大时，那么这个HFile中显然不存在seekKV，但是可能存在
+相同rowkey,family,qualifier的不同ts的KeyValue,那么这里设置堆顶时要注意，不能把堆顶设置为比当前HFile文件中的可能真实存在的相同rowkey,family,qualifier的KeyValue大，如下：</p>
+<pre><code data-origin="&lt;pre&gt;&lt;code&gt;public KeyValue createFirstOnRowColTS(long ts) {
+ return new KeyValue(
+     bytes, getRowOffset(), getRowLength(),
+     bytes, getFamilyOffset(), getFamilyLength(),
+     bytes, getQualifierOffset(), getQualifierLength(),
+     ts, Type.Maximum, bytes, getValueOffset(), getValueLength());
+}
+&lt;/code&gt;&lt;/pre&gt;">public KeyValue createFirstOnRowColTS(long ts) {
+ return new KeyValue(
+     bytes, getRowOffset(), getRowLength(),
+     bytes, getFamilyOffset(), getFamilyLength(),
+     bytes, getQualifierOffset(), getQualifierLength(),
+     ts, Type.Maximum, bytes, getValueOffset(), getValueLength());
+}
+</code></pre><p>Type的比较中，Type.Maximum最小，这样产生的KeyValue保证了不会大于当前HFile文件中的可能存在的相同rowkey，family，qualifier的KeyValue，同时将seekKV保存到StoreFileScanner成员变量delayedSeekKV中，以便后续真正seek的时候获取.
+考虑一下如果seekKV的ts比当前HFile中的maxTimestamp更小怎么办?可以设置一个ts为latest_timestamp
+的KeyValue么?如果设置了，它会比其它HFile中存在实际的KeyValue先弹出，这样顺序就乱了,所以这种情况下，只能进行实际的seek，enforceSeek()函数中进行实际的seek后，将realSeekDone设置为
+true.</p>
+</li>
+</ol><h5 id="取storescanner堆顶逻辑"><a name="取storescanner堆顶逻辑" href="#取storescanner堆顶逻辑"></a>取StoreScanner堆顶逻辑</h5><p>因为HFile3的latestTimestampInStoreFile最大，所以会首先取到HFile3对应的StoreFileScanner的pee
+k(<strong>KeyValue的比较原则是timestamp大的KeyValue更小</strong>)，
+这个时候会检查这个KeyValueScanner是否进行了实际的seek(对于StoreFileScanner来说，通过布尔变量realSeekDone进行标记，对于MemStoreScanner来说，始终返回true)，在这里，没有进行real seek
+，接着进行实际的seek操作，seek到HFile3中存在的seekKV，接着拿着seekKV去和HFile2的peek进行比较，显然seekKV比HFile2的peek小(由于timestamp &gt; lastTimestampInStoreFile2),故
+StoreScanner的peek操作返回seekKV。</p><p>实现中，KeyValueHeap有两个重要的接口，peek()和next()，他们都是返回堆顶，区别在于next()会将堆顶出堆，然后重新调整堆，对外来说就是迭代器向前移动，而peek()不会将堆顶出堆，堆顶不变。实现中，
+peek()操作非常简单，只需要调用堆的成员变量current的peek()方法操作即可.拿StoreScanner堆举例，current要么是StoreFileScanner类型要么是MemStore，而current的选择则是pollRealKV()
+完成的，这个函数之所以内部有while循环就是因为考虑了Lazy Seek优化，实际上，pollRealKV()代码的逻辑就是例子中"取StoreScanner堆顶逻辑"。pollRealKV()的返回值会赋给current</p><pre><code data-origin="&lt;pre&gt;&lt;code&gt;  protected KeyValueScanner pollRealKV() throws IOException {
+    KeyValueScanner kvScanner = heap.poll();
+    if (kvScanner == null) {
+      return null;
+    }
+
+    while (kvScanner != null &amp;amp;&amp;amp; !kvScanner.realSeekDone()) {
+      if (kvScanner.peek() != null) {
+        kvScanner.enforceSeek();
+        KeyValue curKV = kvScanner.peek();
+        if (curKV != null) {
+          KeyValueScanner nextEarliestScanner = heap.peek();
+          if (nextEarliestScanner == null) {
+            // The heap is empty. Return the only possible scanner.
+            return kvScanner;
+          }
+
+          // Compare the current scanner to the next scanner. We try to avoid
+          // putting the current one back into the heap if possible.
+          KeyValue nextKV = nextEarliestScanner.peek();
+          if (nextKV == null || comparator.compare(curKV, nextKV) &amp;lt; 0) {
+            // We already have the scanner with the earliest KV, so return it.
+            return kvScanner;
+          }
+
+          // Otherwise, put the scanner back into the heap and let it compete
+          // against all other scanners (both those that have done a &quot;real
+          // seek&quot; and a &quot;lazy seek&quot;).
+          heap.add(kvScanner);
+        } else {
+          // Close the scanner because we did a real seek and found out there
+          // are no more KVs.
+          kvScanner.close();
+        }
+      } else {
+        // Close the scanner because it has already run out of KVs even before
+        // we had to do a real seek on it.
+        kvScanner.close();
+      }
+      kvScanner = heap.poll();
+    }
+
+    return kvScanner;
+  }
+&lt;/code&gt;&lt;/pre&gt;">  protected KeyValueScanner pollRealKV() throws IOException {
+    KeyValueScanner kvScanner = heap.poll();
+    if (kvScanner == null) {
+      return null;
+    }
+
+    while (kvScanner != null &amp;&amp; !kvScanner.realSeekDone()) {
+      if (kvScanner.peek() != null) {
+        kvScanner.enforceSeek();
+        KeyValue curKV = kvScanner.peek();
+        if (curKV != null) {
+          KeyValueScanner nextEarliestScanner = heap.peek();
+          if (nextEarliestScanner == null) {
+            // The heap is empty. Return the only possible scanner.
+            return kvScanner;
+          }
+
+          // Compare the current scanner to the next scanner. We try to avoid
+          // putting the current one back into the heap if possible.
+          KeyValue nextKV = nextEarliestScanner.peek();
+          if (nextKV == null || comparator.compare(curKV, nextKV) &lt; 0) {
+            // We already have the scanner with the earliest KV, so return it.
+            return kvScanner;
+          }
+
+          // Otherwise, put the scanner back into the heap and let it compete
+          // against all other scanners (both those that have done a "real
+          // seek" and a "lazy seek").
+          heap.add(kvScanner);
+        } else {
+          // Close the scanner because we did a real seek and found out there
+          // are no more KVs.
+          kvScanner.close();
+        }
+      } else {
+        // Close the scanner because it has already run out of KVs even before
+        // we had to do a real seek on it.
+        kvScanner.close();
+      }
+      kvScanner = heap.poll();
+    }
+
+    return kvScanner;
+  }
+</code></pre><h4 id="参考资料"><a name="参考资料" href="#参考资料"></a>参考资料</h4><p><a href="https://github.com/apache/hbase/tree/0.98">https://github.com/apache/hbase/tree/0.98</a></p><p><a href="https://issues.apache.org/jira/browse/HBASE-4465">https://issues.apache.org/jira/browse/HBASE-4465</a></p>
+
+<footer style="position:fixed; font-size:.8em; text-align:right; bottom:0px; margin-left:-25px; height:20px; width:100%;">generated by <a href="http://pad.haroopress.com" target="_blank">haroopad</a></footer>
+</body>
+</html>
